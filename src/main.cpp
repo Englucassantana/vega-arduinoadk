@@ -1,31 +1,44 @@
 #include <Arduino.h>
-#include <Wire.h>
-#include <../lib/TesteClass/src/TesteClass.hpp>
-#include <../lib/PolarConvertion/src/PolarConvertion.hpp>
-#include "../lib/Vector2/scr/Vector2.hpp"
-#include "../lib/AnglesHelper/src/AnglesHelper.hpp"
+// A simple example of a receiver. Taken from the original RadioHead library.
+// All credits and free beer to: https://www.airspayce.com/mikem/arduino/RadioHead/
+
+#include <RH_ASK.h>
+
+#define RADIOHEAD_BAUD 2000 // Transmission Speed
+#define RADIOHEAD_TX_PIN -1 // Pin of the 433MHz transmitter (here not used)
+#define RADIOHEAD_RX_PIN  11 // Pin of the 433MHz receiver
+
+RH_ASK driver(RADIOHEAD_BAUD, RADIOHEAD_RX_PIN, RADIOHEAD_TX_PIN);
 
 void setup() {
-  // put your setup code here, to run once:
-  pinMode(2,OUTPUT);
-  digitalWrite(2,HIGH);
-  Serial.begin(460800);
-  Serial.println("Serial Iniciado");
+    Serial.begin(9600);
+    Serial.println("Começou!");
+    driver.init();
 }
 
+unsigned long intervalo = 0;
+unsigned long tempo = micros();
+bool primeiraMensagem = false;
 void loop() {
-  // put your main code here, to run repeatedly:
-  TesteClass demo;
-  demo.testeFunc();
-  Vector2 target = Vector2(0,-4);
-  Vector2 reference = Vector2(4,0);
-  double r = PolarConvertion::getDistance( target, reference);
-  double teta = PolarConvertion::getDegreeAngle(target, reference);
-  Serial.print("Distância: ");
-  Serial.print(r);
-  Serial.print(" Angulo: ");
-  Serial.print(teta);
-  Serial.println();
-  
+    uint8_t buf[RH_ASK_MAX_MESSAGE_LEN];
+    uint8_t buflen = sizeof(buf);
 
+    
+    
+
+    if (driver.recv(buf, &buflen)) { // Non-blocking
+        if(!primeiraMensagem){
+            tempo = micros();
+            primeiraMensagem = true;
+        }else{
+            intervalo = micros() - tempo;
+            Serial.print("intervalo:");
+            Serial.println(intervalo);
+            primeiraMensagem = false; 
+        }
+        
+
+        // Message with a good checksum received, dump it.
+        driver.printBuffer("Got:", buf, buflen);     
+    }
 }
