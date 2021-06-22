@@ -12,7 +12,7 @@ RH_ASK driver(RADIOHEAD_BAUD, RADIOHEAD_RX_PIN, RADIOHEAD_TX_PIN);
 
 void setup() {
     Serial.begin(9600);
-    Serial.println("Começou!");
+    Serial.println("Recepção Iniciada");
     driver.init();
 }
 
